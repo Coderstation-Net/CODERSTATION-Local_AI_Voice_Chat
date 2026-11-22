@@ -33,7 +33,7 @@
 
 1. **Clone & enter the project**:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/Coderstation-Net/CODERSTATION-Local_AI_Voice_Chat.git
    cd "Coderstation -Assistant"
    ```
 2. **Launch with the one-click Windows launcher** (automatically creates `.venv`, installs dependencies, and opens `http://127.0.0.1:8000`):
@@ -64,7 +64,5 @@ Coderstation -Assistant/
 ├── coderstation.ico       # Windows application icon
 └── requirements.txt       # Python dependencies
 ```
-
----
-
+ 
  
