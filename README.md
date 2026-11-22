@@ -34,13 +34,12 @@
 1. **Clone & enter the project**:
    ```bash
    git clone https://github.com/Coderstation-Net/CODERSTATION-Local_AI_Voice_Chat.git
-   cd "Coderstation -Assistant"
+   cd "Coderstation-Assistant"
    ```
 2. **Launch with the one-click Windows launcher** (automatically creates `.venv`, installs dependencies, and opens `http://127.0.0.1:8000`):
    ```bat
    run_coderstation.bat
    ```
-   *(Or double-click `Coderstation.lnk`.)*
 3. **Optional CLI / custom model launch**:
    ```bash
    .venv\Scripts\python.exe coderstation.py --model llama3.1:8b --whisper small.en --port 8000
