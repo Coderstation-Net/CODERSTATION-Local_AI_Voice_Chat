@@ -1,5 +1,5 @@
  
-<h1 align="center">CODERSTATION — Local AI Voice Chat</h1>
+<h1 align="center">CODERSTATION-Local AI Voice Chat</h1>
 
 <p align="center">
   A GPU-accelerated, 100% local AI voice assistant featuring a 60FPS 3D holographic pure-dot avatar, live system telemetry HUD, Faster-Whisper + Silero VAD speech recognition, Ollama LLM streaming, and Kokoro ONNX neural TTS.
