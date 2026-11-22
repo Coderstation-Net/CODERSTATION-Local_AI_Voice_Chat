@@ -23,7 +23,7 @@
 
 - **OS**: Windows 10/11
 - **Python**: 3.10+
-- **Dependencies**:kokoro-v1.0.onnx and voices-v1.0.bin placed in the project root
+- **Dependencies**: kokoro-v1.0.onnx and voices-v1.0.bin placed in the project root
 - **GPU**: NVIDIA CUDA GPU recommended (CPU fallback supported)
 - **LLM Backend**: [Ollama](https://ollama.com/) running locally (`http://127.0.0.1:11434`) with a model pulled (e.g., `ollama pull llama3.1:8b`)
 
