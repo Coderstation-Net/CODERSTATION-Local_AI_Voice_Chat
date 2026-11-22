@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CODERSTATION // AI Voice & Command Center</title>
+<link rel="icon" type="image/png" href="/coderstation.png" />
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" href="/coderstation.png" />
+<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body data-state="idle">
+<canvas id="matrixBgCanvas" aria-hidden="true"></canvas>
+
+<header>
+  <div class="brand">
+    <img class="brand-logo" src="/coderstation.png" alt="Coderstation" />
+    <h1>CODERSTATION</h1>
+  </div>
+  <div class="telemetry-bar">
+    <button class="settings-toggle-btn" id="btnSpeakNow" onclick="triggerVoiceCapture()">🎙️ Speak Now</button>
+    <button class="settings-toggle-btn" id="btnToggleInput" onclick="toggleChatInput()">💬 Show Input</button>
+    <button class="settings-toggle-btn" id="btnToggleSettings" onclick="toggleSettingsPanel()">⚙️ Show Settings</button>
+  </div>
+</header>
+
+<div class="workspace settings-hidden" id="mainWorkspace">
+  <!-- Left HUD Settings Panel (Toggleable) -->
+  <div class="hud-panel" id="settingsPanel">
+    <div style="text-align:center; width:100%; border-bottom:1px solid var(--panel-border); padding-bottom:8px;">
+      <div style="font-size:0.78rem; letter-spacing:2px; color:var(--text-heading); font-weight:800;">SYSTEM SETTINGS & CONTROLS</div>
+    </div>
+
+    <div class="controls-stack">
+      <div class="btn-row">
+        <button id="btnTestVoice" onclick="testVoiceOutput()">🔊 Test Voice</button>
+        <button onclick="clearHistory()">🧹 Clear Conversation</button>
+      </div>
+
+      <div class="control-label">Ollama Brain Model</div>
+      <select id="modelSelect" size="4" onchange="changeModel(this.value)">
+        <option value="llama3.1:8b">llama3.1:8b</option>
+        <option value="Coderstation.PoliSmart:latest">Coderstation.PoliSmart:latest</option>
+        <option value="qwen3:8b">qwen3:8b</option>
+      </select>
+
+      <div class="control-label">Kokoro Neural Voice (US &amp; UK — 28 Voices)</div>
+      <select id="voiceSelect" size="6" onchange="changeVoice(this.value)">
+        <optgroup label="🇬🇧 British Male (en-gb)">
+          <option value="bm_george">bm_george — British Male (Classic)</option>
+          <option value="bm_lewis">bm_lewis — British Male (Deep)</option>
+          <option value="bm_daniel">bm_daniel — British Male (Refined)</option>
+          <option value="bm_fable">bm_fable — British Male (Narrative)</option>
+        </optgroup>
+        <optgroup label="🇬🇧 British Female (en-gb)">
+          <option value="bf_emma">bf_emma — British Female (Warm)</option>
+          <option value="bf_alice">bf_alice — British Female (Clear)</option>
+          <option value="bf_isabella">bf_isabella — British Female (Crisp)</option>
+          <option value="bf_lily">bf_lily — British Female (Soft)</option>
+        </optgroup>
+        <optgroup label="🇺🇸 American Male (en-us)">
+          <option value="am_adam">am_adam — American Male (Balanced)</option>
+          <option value="am_michael">am_michael — American Male (Studio)</option>
+          <option value="am_echo">am_echo — American Male (Smooth)</option>
+          <option value="am_eric">am_eric — American Male (Clear)</option>
+          <option value="am_fenrir">am_fenrir — American Male (Deep)</option>
+          <option value="am_liam">am_liam — American Male (Natural)</option>
+          <option value="am_onyx">am_onyx — American Male (Rich)</option>
+          <option value="am_puck">am_puck — American Male (Lively)</option>
+          <option value="am_santa">am_santa — American Male (Warm)</option>
+        </optgroup>
+        <optgroup label="🇺🇸 American Female (en-us)">
+          <option value="af_heart">af_heart — American Female (Expressive)</option>
+          <option value="af_bella">af_bella — American Female (Warm)</option>
+          <option value="af_nicole">af_nicole — American Female (Soft)</option>
+          <option value="af_aoede">af_aoede — American Female (Lyrical)</option>
+          <option value="af_kore">af_kore — American Female (Crisp)</option>
+          <option value="af_sarah">af_sarah — American Female (Natural)</option>
+          <option value="af_alloy">af_alloy — American Female (Balanced)</option>
+          <option value="af_jessica">af_jessica — American Female (Bright)</option>
+          <option value="af_nova">af_nova — American Female (Modern)</option>
+          <option value="af_river">af_river — American Female (Calm)</option>
+          <option value="af_sky">af_sky — American Female (Light)</option>
+        </optgroup>
+      </select>
+
+      <div class="control-label">Whisper STT Recognition Model</div>
+      <select id="whisperSelect" size="3" onchange="changeWhisperModel(this.value)">
+        <option value="small.en">small.en (High Accuracy • Fast CUDA)</option>
+        <option value="base">base (Ultra-Fast • Multilingual)</option>
+        <option value="base.en">base.en (Ultra-Fast • English)</option>
+        <option value="tiny.en">tiny.en (Instant • Lowest Latency)</option>
+        <option value="medium.en">medium.en (Studio Accuracy)</option>
+      </select>
+
+      <div class="control-label">PC Speaker Device</div>
+      <select id="speakerSelect" size="3" onchange="changeOutputDevice(this.value)">
+        <option value="">System Default Output (Native)</option>
+        <option value="browser">Browser Web Audio Only</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Full-Stage Borderless 3D Avatar Container with All HUD Displays Inside -->
+  <div class="chat-panel">
+    <div class="avatar-stage-wrapper" id="avatarStageWrapper">
+      <canvas id="coderstationAvatarCanvas" width="840" height="430"></canvas>
+
+      <div class="avatar-content-layer">
+        <!-- Top Row: Live State Pill, Brand Title, Vocal/Neural Telemetry Badge -->
+        <div class="avatar-top-bar">
+          <div class="avatar-top-left">
+            <div class="avatar-state-pill">
+              <span class="avatar-pulse-dot"></span>
+              <span id="stateLabel">IDLE</span>
+            </div>
+          </div>
+          <div class="set-hud-banner">CODERSTATION</div>
+          <div class="avatar-top-right">
+            <div class="avatar-energy-badge" id="avatarEnergyBadge">NEURAL AVATAR // ONLINE</div>
+          </div>
+        </div>
+
+        <!-- Middle Row: Left Telemetry | Open 3D Avatar Center | Right GPU & Ollama PS -->
+        <div class="set-hud-grid">
+          <!-- Left Column: SYS, CPU, GPU, RAM -->
+          <div class="hud-col-left">
+            <div class="hud-sys-row">
+              <div class="hud-digital-clock">System Time: <span id="hudClock">--:--:--</span></div>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <span class="hud-mic-pill" id="sttBadge">STT: CUDA | TTS: CUDA</span>
+                <div class="hud-mic-pill">MIC: <span id="micVal">Checking...</span></div>
+              </div>
+            </div>
+
+            <div class="hud-chart-card">
+              <div class="hud-chart-top">
+                <span style="font-size:26px; line-height:1;">CPU</span>
+                <span class="hud-chart-val" id="cpuVal">--%</span>
+              </div>
+              <canvas class="hud-sparkline" id="cpuChart" width="240" height="38"></canvas>
+            </div>
+
+            <div class="hud-chart-card">
+              <div class="hud-chart-top">
+                <span style="font-size:26px; line-height:1;">GPU</span>
+                <span class="hud-chart-val" id="gpuVal">--%</span>
+              </div>
+              <canvas class="hud-sparkline" id="gpuChart" width="240" height="38"></canvas>
+            </div>
+
+            <div class="hud-chart-card">
+              <div class="hud-chart-top">
+                <span style="font-size:26px; line-height:1;">RAM</span>
+                <span class="hud-chart-val" id="ramVal">--%</span>
+              </div>
+              <canvas class="hud-sparkline" id="ramChart" width="240" height="38"></canvas>
+            </div>
+          </div>
+
+          <!-- Center Open Viewport for 3D Holographic Avatar -->
+          <div class="hud-col-center-spacer"></div>
+
+          <!-- Right Column: GPU Hardware & Ollama PS -->
+          <div class="hud-col-right">
+            <div class="hud-card">
+              <div class="hud-card-header">
+                <span id="gpuNameLabel">GPU // CHECKING...</span>
+                <span class="hud-card-badge" id="gpuTempBadge">--°C</span>
+              </div>
+              <div class="gpu-stats-row">
+                <span>Compute: <strong id="gpuUtilText">--%</strong></span>
+                <span>VRAM: <strong id="gpuVramText">-- / -- GB</strong></span>
+              </div>
+              <div class="gpu-bar-track">
+                <div class="gpu-bar-fill" id="gpuVramBar"></div>
+              </div>
+              <canvas class="hud-sparkline" id="gpuVramChart" width="240" height="30"></canvas>
+            </div>
+
+            <div class="hud-card" id="inferenceCard">
+              <canvas id="inferenceBgChart" aria-hidden="true"></canvas>
+              <div class="hud-card-header">
+                <span>Inference Engine</span>
+                <span class="hud-card-badge" id="ollamaPsCount">0 ACTIVE</span>
+              </div>
+              <div class="ollama-ps-list" id="ollamaPsList">
+                <div class="ollama-ps-empty">Standby — No active models loaded in VRAM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Dock inside Avatar Container: Status Banner, Last Answer & Optional Chat Input -->
+        <div class="avatar-bottom-dock">
+          <div class="status-banner" id="statusBanner"></div>
+
+          <div class="chat-log" id="chatLog">
+            <div class="msg assistant" id="lastAnswerBox">
+              <div class="sender">Coderstation</div>
+              <div class="content" id="lastAnswerContent">Coderstation neural interface online. How may I assist you today, Sir?</div>
+            </div>
+          </div>
+
+          <div class="chat-input-bar input-hidden" id="chatInputBar">
+            <input type="text" id="chatInput" placeholder="Type a command or question for Coderstation (or press Enter)..." autocomplete="off" />
+            <button onclick="sendTextCommand()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>CODERSTATION // NEURAL VOICE INTERFACE</span>
+  <span>WAKE PHRASE: "CODERSTATION"</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
